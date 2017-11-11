@@ -9,7 +9,7 @@ from list_product import list_product
 
 def rho_finder(N, rho, mono, subadd, submod, account, alphaaug, alpha):
 	
-	M = 2
+	M = 1
 
 	numb = range(N)
 
