@@ -56,11 +56,20 @@ def rho_finder(N, rho, mono, subadd, submod, account, alphaaug, alpha):
 ###
 	if mono == 1:	
 		m.addConstrs(w[i] <= w[j] for i in points for j in points if (int(j) % int(i) == 0))
+		for i in range(N-1):
+	    		m.addConstr(opt[i] <= opt[i+1])
+	    		m.addConstr(w[numb[0][i]] <= w[numb[0][i+1]])
+
 ###
 ### Sub-Additivity
 ###
 	if subadd == 1:		
 		m.addConstrs(w[lcm(i, j)] <= w[i] + w[j] for i in points for j in points)
+		m.addConstrs(2*opt[i] >= opt[(2*i)+1] for i in range(N) if ((2*i)+1) <= (N-1))
+#
+		for i in range(N):
+ 	 		m.addConstr(opt[i] <= sum(w[numb[0][j]] for j in range(N-i-1, N)))
+	
 ###
 ### Sub-Modularity
 ###
@@ -94,9 +103,10 @@ def rho_finder(N, rho, mono, subadd, submod, account, alphaaug, alpha):
 	if account == 1:
 		for x in range(N-1):
 			m.addConstrs(t[x].sum('*', j) == 1 for j in numb[x+1])
-		    	m.addConstrs(t[x][i, j] == 0 for i in numb[x] for j in numb[x+1] if (j % i) != 0)
-		    	m.addConstrs(w[i] >= ((x+1)/(x+2.)) * w[j] - ((1 - t[x][i, j])*M) for j in numb[x+1] 
-			for i in numb[x] if (j % i == 0))
+                        m.addConstrs(t[x][i, j] == 0 for i in numb[x] for j in numb[x+1] if (j % i) != 0)
+                        m.addConstrs(w[i] >= ((x+1)/(x+2.)) * w[j] - ((1 - t[x][i, j])*M) for j in numb[x+1] for i in numb[x] if (j % i == 0))
+#
+		m.addConstrs(opt[i] >= ((i+1)/(i+2))*opt[i + 1] for i in range(N-1))
 ###
 ### rho-strategies
 ###
@@ -111,16 +121,10 @@ def rho_finder(N, rho, mono, subadd, submod, account, alphaaug, alpha):
 	    m.addConstrs(opt[x] <= w[j] + ((1 - b[x][j]) * M) for j in numb[x])
 	    m.addConstrs(opt[x] >= rho * w[strategies[i][x]] - (1 - l[x][i]) * M for i in range(len(strategies)))
 ###
-### speed the code up
+### speed up the code in general
 ###
 	m.addConstr(w[numb[N-1][0]] == 1)
 
-	for i in range(N-1):
-	    m.addConstr(opt[i] <= opt[i+1])
-	    m.addConstr(w[numb[0][i]] <= w[numb[0][i+1]])
-
-	m.addConstrs(opt[i] >= ((i+1)/(i+2))*opt[i + 1] for i in range(0, N-1))
-	m.addConstrs(2*opt[i] >= opt[(2*i)+1] for i in range(N) if ((2*i)+1) <= (N-1))
 ###
 ###
 ###
@@ -145,9 +149,3 @@ def rho_finder(N, rho, mono, subadd, submod, account, alphaaug, alpha):
 	for i in points:
 		f.write('w-'+str(i)+'='+str(w[i])+'\n')
 	f.close
-
-
-
-
-
-
